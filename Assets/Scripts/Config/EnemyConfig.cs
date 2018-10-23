@@ -10,4 +10,5 @@ public class EnemyConfig : MonoBehaviour {
     public TypeChoice Type;
     public float Health = 5;
     public float Armor = 0;
+    public float Speed = 3;
 }

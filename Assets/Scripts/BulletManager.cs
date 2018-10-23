@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class BulletManager : MonoBehaviour {
     //Bullet
-    List<Transform> bTransform;
-    List<BulletConfig> config;
+    List<Transform> bTransform = new List<Transform>();
+    List<BulletConfig> config = new List<BulletConfig>();
 
     // Use this for initialization
     void Start () {
@@ -15,9 +15,12 @@ public class BulletManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
         //Bullets
-        for (int i = 0; i < bTransform.Count; i++)
+        if (config != null)
         {
-            bTransform[i].Translate(Vector3.forward * Time.deltaTime);
+            for (int i = 0; i < bTransform.Count; i++)
+            {
+                bTransform[i].Translate(Vector3.forward * Time.deltaTime);
+            }
         }
     }
     public float EnemyCollision(Transform eTransform)
