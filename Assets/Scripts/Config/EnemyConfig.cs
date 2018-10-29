@@ -18,8 +18,5 @@ public class EnemyConfig : MonoBehaviour {
 
     [HideInInspector]
     public Vector3 Heading;
-    [HideInInspector]
-    public float Cohesion = 100f;
-    [HideInInspector]
-    public float AlignmentRadius = 0.2f;
+    
 }

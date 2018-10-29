@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Unity.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
@@ -16,12 +17,21 @@ public class EnemyMoveSystem : ComponentSystem {
     struct Enemy
     {
         //THESE VARIBLES ARE COMPONENTS ON THE ENEMY
+#pragma warning disable 649
         public Transform transform;
         public EnemyConfig config;
         public MeshRenderer renderer;
-        
+#pragma warning restore 649
+
         //Methods in this Struct Are Only here to Set Data
 
+    }
+    struct Cell
+    {
+        public NativeArray<int> Index;
+        public NativeArray<Vector3> Position;
+        public NativeArray<Vector3> Heading;
+        public NativeArray<int> Count;
     }
     protected override void OnStartRunning()
     {
@@ -33,6 +43,13 @@ public class EnemyMoveSystem : ComponentSystem {
         float forwCount = 0;
         float posCount = 0;
         float turnSpeed = 5f;
+
+        float cellRadius = 5f;
+        float AlignWeight = 1f;
+        float SeprationWeight = 1f;
+        float TargetWeight = 0.5f;
+        float RandHeadingWeight = 1f;
+        
         //Generate Curent Positions and Forward Directions
 
         foreach (var e in GetEntities<Enemy>())
@@ -44,42 +61,67 @@ public class EnemyMoveSystem : ComponentSystem {
         forwCount = forw.Count;
         foreach (var e in GetEntities<Enemy>()) //Foreach loops are Read only for the Value e; BAH
         {
+            
+            //find Heading
             Vector3 position = e.transform.position;
             Vector3 Heading = e.config.Heading;
-            e.renderer.material.color = e.config.color;
-            //find Heading
+            Vector3 AlginmentResult = Vector3.zero;
+            Vector3 SeperationResult = Vector3.zero;
+            Vector3 TargetHeading = Vector3.zero;
+
             Vector3 avgforw = Vector3.zero;
             Vector3 avgPos = Vector3.zero;
+            
             int count = 0;
             for (int i = 0; i < posCount; i++) {
                 float dis = Vector3.Distance(position, pos[i]);
-                if (dis <= e.config.AlignmentRadius && dis > 0.5f)
+                if (dis < cellRadius)
                 {
-                    Debug.Log(e.config.AlignmentRadius);
                     avgforw += forw[i];
                     avgPos += pos[i];
                     count++;
                 }
             }
-            Vector3 RandHeading = Vector3.Normalize(new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), Random.Range(-1f, 1f)));
-            if (count > 0)
+            Vector3 RandHeading = RandHeadingWeight * Vector3.Normalize(new Vector3(Random.Range(-1f, 1f), Random.Range(-1f, 1f), Random.Range(-1f, 1f)));
+            if (count > 1)
             {
-                avgforw /= forwCount;
-                avgPos /= posCount;
+                avgforw /= count;
+                avgPos /= count;
                 Vector3 offset = position - avgPos;
-                Vector3 CohesionForw = Vector3.RotateTowards(avgforw, offset, e.config.Cohesion, 1f);
-                CohesionForw = Vector3.Normalize(CohesionForw + RandHeading * 3.1f);
-                Heading = CohesionForw + position;
-                Debug.DrawRay(e.transform.position, Heading, Color.red);
+                AlginmentResult = AlignWeight * Vector3.Normalize(avgforw); //- offset
+                //Debug.DrawRay(avgPos,Vector3.one/3,Color.green);
+                //Debug.DrawRay(e.transform.position, Heading, Color.red);
+                float sepration = -1f;
+                //SeperationResult = SeprationWeight * Vector3.Normalize(offset * sepration);
             }
-            else {
-                Heading = RandHeading;
+            Heading = Vector3.Normalize(AlginmentResult + SeperationResult + RandHeading + TargetHeading);
+            if (position.y < 0f) {
+                Heading = Vector3.up;
+            } else if (position.y > 20f)
+            {
+                Heading = Vector3.down;
+            } else if (position.z > 50f)
+            {
+                Heading = Vector3.back;
+            }
+            else if (position.z < -50f)
+            {
+                Heading = Vector3.forward;
+            }
+            else if (position.x < -80f)
+            {
+                Heading = Vector3.right;
+            }
+            else if (position.x > 80f)
+            {
+                Heading = Vector3.left;
             }
             e.config.Heading = Heading;
             //Move and Rotate
             Quaternion rot = Quaternion.LookRotation(Vector3.Normalize(e.transform.forward + Heading));
             e.transform.rotation = Quaternion.Lerp(e.transform.rotation, rot, turnSpeed* dt);
             e.transform.position = position + e.transform.forward * dt * e.config.Speed;
+            e.renderer.material.color = new Color(count*0.2f,0.5f,0.5f);
         }
         forw.Clear();
         pos.Clear();

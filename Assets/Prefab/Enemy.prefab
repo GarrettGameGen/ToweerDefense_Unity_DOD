@@ -107,9 +107,8 @@ MonoBehaviour:
   MaxHealth: 5
   Health: 5
   Armor: 0
-  Speed: 3
+  Speed: 10
   color: {r: 0, g: 0, b: 0, a: 0}
   Heading: {x: 0, y: 0, z: 0}
-  HeadingTimer: 0
-  NearbyForward: []
+  Cohesion: 100
   AlignmentRadius: 10
