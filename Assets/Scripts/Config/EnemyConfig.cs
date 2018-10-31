@@ -15,8 +15,4 @@ public class EnemyConfig : MonoBehaviour {
     public float Armor = 0;
     public float Speed = 3;
     public Color color;
-
-    [HideInInspector]
-    public Vector3 Heading;
-    
 }
