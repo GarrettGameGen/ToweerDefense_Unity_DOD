@@ -91,7 +91,7 @@ namespace GameGen
             }
         }
         */
-        [BurstCompile]
+        //[BurstCompile]
         struct Move : IJobParallelFor
         {
             public ComponentDataArray<Position> positions;
@@ -101,7 +101,7 @@ namespace GameGen
 
             public void Execute(int i)
             {
-                Debug.Log("Hello?");
+                Debug.Log(i); 
                 float turnSpeed = 5.0f;
                 float ForwSpeed = 10.0f;
                 var position = positions[i].Value;
@@ -109,7 +109,9 @@ namespace GameGen
                 var targetForward = math.forward(rotation);
                 //Quaternion rot = Quaternion.LookRotation(Vector3.Normalize(targetForward + headings[i]));
                 //rotations[i] = Quaternion.Lerp(rotations[i], rot, turnSpeed * dt);
-                positions[i] = position + Position. targetForward * ForwSpeed * dt;
+                positions[i] = new Position {
+                    Value = position + targetForward * ForwSpeed * dt
+                };
                 //e.renderer.material.color = new Color(count * 0.2f, 0.5f, 0.5f);
             }
         }
@@ -170,12 +172,23 @@ namespace GameGen
                     //headings = heading,
                     dt = deltime,
                 };
-                var moveJobHandle = moveJob.Schedule(entCount, 64, inputDeps);
+                var moveJobHandle = moveJob.Schedule(entCount, 64, inputDeps); 
                 inputDeps = moveJobHandle;
             }
             return inputDeps;
         }
+        protected override void OnCreateManager()
+        {
+            m_BoidGroup = GetComponentGroup(
+                ComponentType.ReadOnly(typeof(Boid)),
+                ComponentType.ReadOnly(typeof(Position)),
+                ComponentType.ReadOnly(typeof(Rotation))
+                //Heading?
+                );
+
+        }
     }
+    
 }
 /*
 posCount = pos.Count;
